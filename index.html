@@ -1,0 +1,473 @@
+<!DOCTYPE HTML>
+<!--
+	Photon by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+
+<head>
+	<!--<script type="text/javascript" src="coursearray.json"></script>-->
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+	<title>STARS PLANNER +</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" type="text/css" href="assets/css/main.css" />
+	<link rel="stylesheet" type="text/css" href="assets/css/w3.css" />
+
+		<style media="screen">
+
+		 	#dividable {
+		      display:table;
+			    width:100%;
+	 		    border:0.5px solid grey;
+		 	    border-radius:8px;
+					background-color: #E5E8E8;
+		 		 }
+
+		  #dividable filter{
+				  background-color: #E5E8E8  ;
+					border: 1px solid grey;
+					border-radius:8px;
+				 	border-collapse: collapse;
+					color:black;
+					font-size: 12px;
+					width: 33%;
+					text-align:center;
+					padding-right: 5px;
+					word-wrap:break-word;
+					float:right;
+					margin-right: 1%;
+				 }
+
+			 #dividable table{
+			 	background-color: #E5E8E8 ;
+			 	border: 0.5px solid grey;
+				border-radius:8px;
+			 	border-collapse: collapse;
+				color:black;
+				font-size: 13px;
+				width: 65%;
+				text-align:center;
+				display:table-cell;
+				word-wrap:break-word;
+				vertical-align: middle;
+				float:left;
+				margin-left:0.5%;
+			 }
+
+			#dividable table td{
+				 border: 1px solid lightgrey;
+				 text-align:center;
+				 vertical-align: middle;
+			 }
+
+			 #dividable table th{
+				 width:16%;
+				 border: 1px solid #F2F3F4  ;
+				 background-color:#D0D3D4  ;
+				 text-align: center;
+			 }
+
+			 #dividable table tr{
+				 margin-left:2%;
+			 }
+
+
+			@media screen and (max-width:800px) {
+			#dividable table {
+			    font-size:15px;
+			  }
+			 }
+			@media screen and (max-width:480px) {
+			#dividable table {
+			    font-size:15px;
+			  }
+			 }
+		</style>
+	</head>
+	<body>
+
+<script>
+
+$(function () {
+  $("#day").find('input[type="checkbox"]').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setTimeout(function() {
+      this.checked = !this.checked;
+    }.bind(this), 100);
+  });
+});
+
+	function readArray(){
+		$.getJSON("coursearray.json", function(json) {
+    console.log(json); // this will show the info it in firebug console
+});
+	}
+
+
+
+	function changeTable(){
+		var text = ' { \
+		"code":["AB1501","CZ3002","CZ3002","CZ3002"],\
+		"index":["00602","10382","10382","10382"],\
+		"type":["seminar","lecture","tutorial","lab"],\
+		"day":["1","2","5","5"],\
+		"start":["5","1","1","7"],\
+		"end":["9","13","3","11"]\
+	} ';
+		/* reset table to empty */
+		var myTable = document.getElementById("left");
+		var tableRows = myTable.rows.length;
+
+		for (b=1; b<tableRows; b++){
+			var cols = myTable.rows[b].cells.length;
+			for (a=1; a<cols; a++){
+							myTable.rows[b].cells[a].setAttribute("rowspan",1);
+			}
+			if (myTable.rows[b].cells.length < 6){
+				while(myTable.rows[b].cells.length < 6){
+					myTable.rows[b].insertCell(-1);
+				}
+			}
+		}
+
+		var obj = JSON.parse(text);
+		for (i=0; i<obj.code.length; i++){
+			var myCell = document.getElementById("left").rows[parseInt(obj.start[i])].cells[parseInt(obj.day[i])];
+			myCell.innerHTML = (parseInt(obj.end[i])-parseInt(obj.start[i])) + ";" + obj.code[i] +"<br/>"+ obj.index[i] +"<br/>"+obj.type[i];
+		}
+
+		var table = document.getElementById("left");
+		var tableMatrix = [];
+		for(var a=0; a<table.rows.length; a++) {
+    	tableMatrix[a] = [];
+    	for(var b=0; b<6; b++) {
+        tableMatrix[a][b] = 1;
+    	}
+		}
+		for (var i = 1, row; row = table.rows[i]; i++) {
+		   for (var j = 1, col; col = row.cells[j]; j++) {
+				 if(col.innerHTML == ''){
+					 continue;
+				 } // if empty, skip
+				 else{
+					 var courseArray = col.innerHTML.split(";");
+					 var courseRowSpan = courseArray[0] //assume rowspan will always be one digit
+					 col.innerHTML = courseArray[1]; // back to original content without row span
+					 table.rows[i].cells[j].setAttribute("rowspan",courseRowSpan);
+					 var statusArray = [];
+					 for(k=0; k<courseRowSpan-1; k++){
+						 statusArray[k] = 0;
+						 for(m=1; m<j; m++){
+							 if(tableMatrix[k+i+1][m]==0){statusArray[k]++;}
+						 }
+						 table.rows[k+i+1].deleteCell(j-statusArray[k]);
+						 tableMatrix[k+i+1][j] = 0;
+					}
+
+				 }
+		   }
+		}
+
+
+		/* update filter "class" checkbox options */
+		var classOptions = document.getElementById("classForm");
+		classOptions.innerHTML = " ";
+		var pFormatFront = "<p style='margin-bottom:1px;'><input class='w3-check' type='checkbox' style='font-size:10px;'><label>";
+		var pFormatEnd = "</label></p>";
+		var objectArray = [];
+		for (i=0; i<obj.code.length; i++){
+			objectArray[i] = obj.code[i];
+		}
+		// convert array to set to remove repetitive course code
+		var objectSet = new Set(objectArray);
+		for (var item = objectSet.values(), val= null; val=item.next().value; ) {
+		   classOptions.innerHTML += pFormatFront + val + pFormatEnd ;
+		 }
+}
+
+
+function myFunc(id) {
+    var x = document.getElementById(id);
+    if (x.className.indexOf("w3-show") == -1) {
+        x.className += " w3-show";
+    } else {
+        x.className = x.className.replace(" w3-show", "");
+    }
+}
+
+function toggle_visibility(id) {
+		var e = document.getElementById(id);
+		if(e.style.display == 'block')
+			 e.style.display = 'none';
+		else
+			 e.style.display = 'block';
+}
+
+$('#day').accordion();
+$('#day input[type="checkbox"]').click(function(e){
+	e.stopPropagation();
+});
+
+/* 
+	Login: Get the modal
+*/
+var modal = document.getElementById('id01');
+
+/* 
+	When the user clicks anywhere outside of the modal, close it
+*/
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+</script>
+
+		<!-- Header -->	
+	
+				<div class="topbar">
+  					<button id= "login-button-main" class="button scrolly" onclick="document.getElementById('id01').style.display='block'" style="width:auto;">Log-in</button>
+
+					<div id="id01" class="modal">
+  
+  						<form class="modal-content animate" action="/action_page.php">
+   							<div class="imgcontainer">
+      							<span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">&times;</span>
+    						</div>
+		
+   			 				<div class="login-container">
+     	 						<label><b>Username</b></label>
+      							<input class="login-input" type="text" placeholder="Enter Username" name="uname" required>
+
+      							<label><b>Password</b></label>
+      							<input class="login-input" type="password" placeholder="Enter Password" name="psw" required>
+        
+      							<button id= "login-button" class="button scrolly" type="submit">Login</button>
+    						</div>
+
+    						<div class="login-container" style="background-color:#f1f1f1">
+      							<button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">Cancel</button>
+      							<span class="psw">Forgot <a href="#">password?</a></span>
+    						</div>
+ 						</form>
+					</div>
+				</div>
+			
+			<section id="header" style="height:100%">
+				<div class="inner">
+					<span class="icon major fa-cloud"></span>
+					<h1>Welcome to <strong>STARS PLANNER +</strong>.</h1>
+					<p>Stars Planner + is a tool for NTU SCSE students to facilitate timetable generation.</p>
+					<ul class="actions">
+						<li><a href="#plan" class="button scrolly">PLAN</a></li>
+						<li><a href="#timetable" class="button scrolly" onclick="toggle_visibility('dividable');">TIMETABLES</a></li>
+						<li><a class="button scrolly" onclick="changeTable()">TEST</a></li>
+					</ul>
+				</div>
+			</section>
+
+		<!-- Plan -->
+
+			<section id="plan" class="main style2">
+
+				<div class="container" >
+					<!-- need to change to form not div for real implementation -->
+					<div class="w3-container">
+			      <p>
+						<label style="color:white;">Enter your courses:</label>
+			      <input class="w3-input" type="text" style="background-color:lightgrey;"></p>
+
+											<input type="checkbox" style="color:black !important;border-color:black !important;"/>
+											 <label>monday</label>
+						<input type="submit" onclick="changeTable()" value ="generate timetables"  style="font-size:10px;" />
+			    </div>
+					</div>
+
+
+					<div class="container" style="margin-top:3%">
+						<div id="dividable">
+						<table id="left" >
+							<tr>
+								<th></th>
+								<th scope="col" id="mon">Monday</th>
+								<th scope="col" id="tue">Tuesday</th>
+								<th scope="col" id="wed">Wednesday</th>
+								<th scope="col" id="thu">Thursday</th>
+								<th scope="col" id="fri">Friday</th>
+							</tr>
+							<tr>
+								<th scope="row">08:30-09:00</th>
+								<td></td><td></td><td></td><td></td><td></td>
+
+							</tr>
+							<tr>
+								<th scope="row">09:00-09:30</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">09:30-10:00</th>
+									<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">10:00-10:30</th>
+									<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">10:30-11:00</th>
+									<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">11:00-11:30</th>
+									<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">11:30-12:00</th>
+									<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">12:00-12:30</th>
+									<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">12:30-13:00</th>
+									<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">13:00-13:30</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">13:30-14:00</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">14:00-14:30</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">14:30-15:00</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">15:00-15:30</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">15:30-16:00</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">16:00-16:30</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">16:30-17:00</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">17:00-17:30</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">17:30-18:00</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">18:00-18:30</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">18:30-19:00</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">19:00-19:30</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">19:30-20:00</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+							<tr>
+								<th scope="row">20:00-20:30</th>
+								<td></td><td></td><td></td><td></td><td></td>
+							</tr>
+						</table>
+						<filter id="filter">
+							<button>save to my timetable</button>
+							<p style="text-align:center;color:#5F6A6A;font-size:15px;">Filters</p>
+							<button id="day1" onclick="myFunc('day')" class="w3-btn w3-block w3-light-grey w3-left-align" style="margin-left:3px;height:30px;width:99%;color:#797D7F !important;font-size:12px;">
+							+ Free Days</button>
+							<div id="day" class="w3-hide w3-center w3-light-grey">
+								<form class="w3-container w3-card-4" style="text-align:left; margin-top:5px;">
+								 <p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+								  <label>monday</label>
+								  <p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+								  <label> tuesday</label></p>
+								  <p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+								  <label>wednesday</label></p>
+									<p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+									<label>thursday</label></p>
+									<p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+									<label>friday</label></p>
+								</form>
+							</div>
+
+							<button onclick="myFunc('time')" class="w3-btn w3-block w3-light-grey w3-left-align" style="margin-left:3px;height:30px;width:99%;color:#797D7F !important;font-size:12px;">
+							+ Timings</button>
+							<div id="time" class="w3-hide w3-center w3-light-grey">
+								<form class="w3-container w3-card-4" style="text-align:left; margin-top:5px;">
+									<p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+									<label>monday</label></p>
+									<p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+									<label> tuesday</label></p>
+									<p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+									<label>wednesday</label></p>
+									<p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+									<label>thursday</label></p>
+									<p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+									<label>friday</label></p>
+								</form>
+							</div>
+
+							<button onclick="myFunc('class')" class="w3-btn w3-block w3-light-grey w3-left-align" style="margin-left:3px;height:30px;width:99%;color:#797D7F !important;font-size:12px;">
+							+ Fix Classes</button>
+							<div id="class" class="w3-hide w3-center w3-light-grey">
+								<form class="w3-container w3-card-4" style="text-align:left; margin-top:5px;" id="classForm">
+								</form>
+							</div>
+							<button onclick="#" class="w3-btn w3-block w3-grey w3-left-align" style="margin-left:1%;margin-bottom:1%;margin-top:2%;height:30px;width:30%;font-size:12px;">
+							Apply</button>
+							<p style="margin-bottom:1px;"><input class="w3-check" type="checkbox" style="font-size:10px;">
+							 <label>monday</label></p>
+				</filter>
+			</div>
+			</section>
+
+			<!-- Contact -->
+			<section id="footer">
+				<ul class="icons">
+					<li><a href="#" class="icon alt fa-twitter"><span class="label">Twitter</span></a></li>
+					<li><a href="#" class="icon alt fa-facebook"><span class="label">Facebook</span></a></li>
+					<li><a href="#" class="icon alt fa-instagram"><span class="label">Instagram</span></a></li>
+					<li><a href="#" class="icon alt fa-envelope"><span class="label">Email</span></a></li>
+				</ul>
+				<ul class="copyright">
+					<li>&copy; Tigersharks</li>
+				</ul>
+			</section>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/skel.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>

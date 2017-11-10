@@ -1,0 +1,21 @@
+{
+"code":["AB1501","CZ3002","CZ3002"],
+"index":["00602","10382","10382"],
+"type":["seminar","lecture","tutorial"],
+"day":["Monday","Wednesdasy","Friday"],
+"start":["1030","1430","0830"],
+"end":["1230","1530","0930"]
+}
+
+
+
+
+
+{
+code: value 1
+index: value 1
+
+}
+code:value 2
+index:value 2
+}
