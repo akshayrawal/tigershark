@@ -3453,7 +3453,7 @@
 			}
 
 	}
-	
+
 /* Login-CSS */
 .topbar {
   width: 100%;
@@ -3480,7 +3480,7 @@ z-index:10;
 
 /* Set a style for all login buttons */
 #login-button-main {
-    background-color: #84e047;
+    background-color: pink;
     color: white;
     text-align:center;
     border: none;
@@ -3489,7 +3489,7 @@ z-index:10;
     position: absolute;
     top:10px;
     right: 100px;
-    
+
 }
 
 #login-button {
@@ -3569,12 +3569,12 @@ span.psw {
 }
 
 @-webkit-keyframes animatezoom {
-    from {-webkit-transform: scale(0)} 
+    from {-webkit-transform: scale(0)}
     to {-webkit-transform: scale(1)}
 }
-    
+
 @keyframes animatezoom {
-    from {transform: scale(0)} 
+    from {transform: scale(0)}
     to {transform: scale(1)}
 }
 
